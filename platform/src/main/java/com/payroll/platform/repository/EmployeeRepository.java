@@ -1,13 +1,15 @@
 package com.payroll.platform.repository;
 
 import com.payroll.platform.model.Employee;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
-    Optional<Employee> findByEmail(String email);
-
-    // This is the missing method that EmployeeService is looking for!
-    List<Employee> findByCompanyId(Long companyId);
+    boolean existsByCompanyIdAndEmailIgnoreCase(Long companyId, String email);
+    Page<Employee> findByCompanyId(Long companyId, Pageable pageable);
+    Page<Employee> findByDepartmentId(Long departmentId, Pageable pageable);
+    Page<Employee> findByCompanyIdAndLastNameContainingIgnoreCase(Long companyId, String lastName, Pageable pageable);
 }

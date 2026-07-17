@@ -1,11 +1,12 @@
 package com.payroll.platform.model;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "departments")
+@Table(name = "departments", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"company_id", "name"})
+})
 public class Department {
 
     @Id
@@ -17,49 +18,47 @@ public class Department {
 
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
-    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Employee> employees = new ArrayList<>();
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    public Department() {
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public String getName() {
-        return name;
-    }
+    public Department() {}
 
-    public void setName(String name) {
+    public Department(String name, String description, Company company) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Company getCompany() {
-        return company;
-    }
-
-    public void setCompany(Company company) {
         this.company = company;
     }
 
-    public List<Employee> getEmployees() {
-        return employees;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setEmployees(List<Employee> employees) {
-        this.employees = employees;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public Company getCompany() { return company; }
+    public void setCompany(Company company) { this.company = company; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
