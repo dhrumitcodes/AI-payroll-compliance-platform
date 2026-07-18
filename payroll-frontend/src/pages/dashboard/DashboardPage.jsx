@@ -105,7 +105,6 @@ export default function DashboardPage() {
                     </Card>
                 </div>
 
-                {/* Data Matrix Table Component */}
                 <Card className="overflow-hidden">
                     <div className="px-6 py-4 border-b border-slate-50 dark:border-slate-900 transition-colors">
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white transition-colors">
