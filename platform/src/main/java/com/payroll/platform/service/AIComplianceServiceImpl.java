@@ -1,6 +1,8 @@
 package com.payroll.platform.service.impl;
 
+import com.payroll.platform.model.PayrollCompliance;
 import com.payroll.platform.model.SalaryStructure;
+import com.payroll.platform.repository.PayrollComplianceRepository;
 import com.payroll.platform.repository.SalaryStructureRepository;
 import com.payroll.platform.service.AIComplianceService;
 import org.springframework.stereotype.Service;
@@ -16,12 +18,16 @@ import java.util.Map;
 public class AIComplianceServiceImpl implements AIComplianceService {
 
     private final SalaryStructureRepository salaryRepository;
+    private final PayrollComplianceRepository complianceRepository;
 
-    public AIComplianceServiceImpl(SalaryStructureRepository salaryRepository) {
+    public AIComplianceServiceImpl(SalaryStructureRepository salaryRepository,
+                                   PayrollComplianceRepository complianceRepository) {
         this.salaryRepository = salaryRepository;
+        this.complianceRepository = complianceRepository;
     }
 
     @Override
+    @Transactional
     public Map<String, Object> evaluateEmployeeCompliance(Long employeeId) {
         SalaryStructure salary = salaryRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new RuntimeException("Compliance check aborted. Salary structure not configured for Employee ID: " + employeeId));
@@ -34,9 +40,7 @@ public class AIComplianceServiceImpl implements AIComplianceService {
 
         BigDecimal expectedPF = base.multiply(BigDecimal.valueOf(0.12)).setScale(2, RoundingMode.HALF_UP);
 
-
         BigDecimal calculatedAnnualTax = BigDecimal.ZERO;
-
 
         if (projectedAnnualGross.compareTo(BigDecimal.valueOf(1500000)) > 0) {
             calculatedAnnualTax = projectedAnnualGross.multiply(BigDecimal.valueOf(0.30));
@@ -51,7 +55,6 @@ public class AIComplianceServiceImpl implements AIComplianceService {
         BigDecimal expectedMonthlyTax = calculatedAnnualTax.divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
         BigDecimal totalExpectedStatutoryDeductions = expectedPF.add(expectedMonthlyTax);
 
-
         String complianceStatus = "COMPLIANT";
         String riskAssessmentMessage = "All statutory calculations track cleanly within standard federal tolerances.";
 
@@ -59,6 +62,19 @@ public class AIComplianceServiceImpl implements AIComplianceService {
             complianceStatus = "NON_COMPLIANT";
             riskAssessmentMessage = "Warning: The employee's monthly deduction profile falls short of expected statutory liabilities (PF + estimated income tax). Check for tax withholding variances.";
         }
+
+
+        PayrollCompliance complianceRecord = new PayrollCompliance(
+                salary.getEmployee(),
+                projectedAnnualGross,
+                expectedPF,
+                expectedMonthlyTax,
+                totalExpectedStatutoryDeductions,
+                currentDeductions,
+                complianceStatus,
+                riskAssessmentMessage
+        );
+        complianceRepository.save(complianceRecord);
 
 
         Map<String, Object> report = new HashMap<>();
