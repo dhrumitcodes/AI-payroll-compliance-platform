@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../../components/layout/Layout";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
 function CompliancePage() {
     const [employees, setEmployees] = useState([]);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
@@ -10,7 +12,14 @@ function CompliancePage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch("http://localhost:8080/api/employees/company/1")
+        const token = localStorage.getItem("token");
+
+        fetch(`${API_BASE}/api/employees/company/1`, {
+            headers: {
+                "Accept": "application/json",
+                ...(token && { "Authorization": `Bearer ${token}` })
+            }
+        })
             .then((res) => {
                 if (!res.ok) throw new Error("Failed to load employee roster");
                 return res.json();
@@ -38,10 +47,14 @@ function CompliancePage() {
         setError(null);
         setAuditData(null);
 
-        fetch(`http://localhost:8080/api/compliance/evaluate/employee/${selectedEmployeeId}`, {
+        const token = localStorage.getItem("token");
+
+        fetch(`${API_BASE}/api/compliance/evaluate/employee/${selectedEmployeeId}`, {
             method: "GET",
             headers: {
-                "Accept": "application/json"
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                ...(token && { "Authorization": `Bearer ${token}` })
             }
         })
             .then(async (res) => {
@@ -79,6 +92,7 @@ function CompliancePage() {
                 </p>
             </div>
 
+            {/* Employee Audit Selector */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6 mb-8 transition-colors">
                 <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
                     Run Compliance Evaluation
@@ -171,7 +185,6 @@ function CompliancePage() {
                         </div>
                     </div>
 
-                    {/* AI Audit Insight Banner */}
                     {auditData.aiRiskAssessment && (
                         <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 text-amber-800 dark:text-amber-300 text-sm font-medium flex items-start gap-3">
                             <span className="text-lg">💡</span>
@@ -182,7 +195,6 @@ function CompliancePage() {
                         </div>
                     )}
 
-                    {/* JSON Response Matrix */}
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
                             Statutory Check Summary

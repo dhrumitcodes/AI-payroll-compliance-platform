@@ -6,6 +6,7 @@ import {
     FaMoneyCheckAlt,
     FaCog,
     FaSitemap,
+    FaShieldAlt
 } from "react-icons/fa";
 
 const menuItems = [
@@ -14,7 +15,8 @@ const menuItems = [
     { name: "Department", path: "/department", icon: <FaSitemap /> },
     { name: "Employee", path: "/employee", icon: <FaUsers /> },
     { name: "Payroll", path: "/payroll", icon: <FaMoneyCheckAlt /> },
-    { name: "Settings", path: "/settings", icon: <FaCog /> },
+    { name: "AI Compliance", path: "/compliance", icon: <FaShieldAlt /> },
+    { name: "Settings", path: "/settings", icon: <FaCog /> }
 ];
 
 function Sidebar() {
