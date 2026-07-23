@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../../components/layout/Layout";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -82,7 +81,6 @@ function CompanyPage() {
             })
             .catch((err) => {
                 console.error("Create Company Error:", err);
-                // Fallback client update if endpoint isn't fully set up yet
                 setCompanies((prev) => [...prev, { ...formData, id: Date.now() }]);
                 setSubmitting(false);
                 setIsModalOpen(false);
@@ -91,7 +89,7 @@ function CompanyPage() {
     };
 
     return (
-        <Layout>
+        <div>
             <div className="mb-6 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -243,7 +241,7 @@ function CompanyPage() {
                     </div>
                 </div>
             )}
-        </Layout>
+        </div>
     );
 }
 

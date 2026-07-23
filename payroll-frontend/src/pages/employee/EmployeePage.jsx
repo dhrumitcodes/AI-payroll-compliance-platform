@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../../components/layout/Layout";
 
 function EmployeesPage() {
     const [employees, setEmployees] = useState([]);
@@ -28,7 +27,6 @@ function EmployeesPage() {
             })
             .then((res) => {
                 if (res.success && res.data) {
-                    // Handles both paginated Page object or direct array
                     const list = res.data.content ? res.data.content : res.data;
                     setEmployees(Array.isArray(list) ? list : []);
                 }
@@ -99,7 +97,7 @@ function EmployeesPage() {
     };
 
     return (
-        <Layout>
+        <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
@@ -120,7 +118,6 @@ function EmployeesPage() {
                     ✅ {successMsg}
                 </div>
             )}
-
 
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
                 {loading ? (
@@ -166,7 +163,6 @@ function EmployeesPage() {
                     </div>
                 )}
             </div>
-
 
             {showModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
@@ -268,7 +264,7 @@ function EmployeesPage() {
                     </div>
                 </div>
             )}
-        </Layout>
+        </div>
     );
 }
 

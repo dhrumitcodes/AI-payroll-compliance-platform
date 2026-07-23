@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../../components/layout/Layout";
 
 function PayrollPage() {
     const [records, setRecords] = useState([]);
@@ -56,7 +55,7 @@ function PayrollPage() {
     };
 
     return (
-        <Layout>
+        <div>
             <h1 className="text-4xl font-bold mb-6 text-slate-900 dark:text-white">
                 Payroll Management
             </h1>
@@ -120,7 +119,7 @@ function PayrollPage() {
                     </div>
                 )}
             </div>
-        </Layout>
+        </div>
     );
 }
 

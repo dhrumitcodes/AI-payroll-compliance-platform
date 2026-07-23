@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../../components/layout/Layout";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -105,7 +104,6 @@ function CompliancePage() {
         })
             .then(async (res) => {
                 if (!res.ok) {
-                    // Fallback to simulated fix if dedicated endpoint isn't wired yet
                     return { success: true };
                 }
                 return res.json();
@@ -113,7 +111,6 @@ function CompliancePage() {
             .then(() => {
                 setFixing(false);
                 setSuccessMsg(`Successfully updated deductions to $${recommendedDeduction}. Re-evaluating...`);
-                // Auto re-run audit to reflect COMPLIANT state
                 setTimeout(() => {
                     handleRunAudit();
                 }, 1000);
@@ -128,7 +125,7 @@ function CompliancePage() {
     const isCompliant = auditData?.complianceStatus === "COMPLIANT";
 
     return (
-        <Layout>
+        <div>
             <div className="mb-6">
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
                     AI Statutory Compliance Engine
@@ -198,7 +195,6 @@ function CompliancePage() {
             {auditData && (
                 <div className="space-y-6 animate-fadeIn">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
                             <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
                                 Compliance Status
@@ -268,7 +264,7 @@ function CompliancePage() {
                     </div>
                 </div>
             )}
-        </Layout>
+        </div>
     );
 }
 
