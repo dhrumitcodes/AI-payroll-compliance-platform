@@ -1,57 +1,42 @@
-# AI Payroll & Compliance Platform
+# ⚡ QuantumPay - Enterprise Payroll & AI Compliance Engine
 
-An enterprise-grade payroll, statutory compliance, and workforce management platform built using Java Spring Boot.
-
-## 🚀 Vision
-
-To build a production-ready SaaS platform for payroll outsourcing firms that automates payroll processing, compliance management, employee workflows, and AI-powered business insights.
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Java 21** & **Spring Boot 3.x**
-- **Spring Security** (Role-Based Access Control)
-- **Spring Data JPA** & **Hibernate**
-
-### Database
-- **PostgreSQL**
-
-### Frontend (Planned)
-- **React** + **TypeScript**
-- **Tailwind CSS**
-
-### Infrastructure & AI
-- **Docker** & **Docker Compose**
-- **Gemini / OpenAI API** (AI Compliance Assistant)
+**QuantumPay** is an enterprise-grade payroll management system built to automate tax compliance, statutory deductions, employee directory management, and workforce analytics. Powered by a Spring Boot REST API, PostgreSQL, and a modern React frontend.
 
 ---
 
-## 📌 Project Status & Current Progress
+## 🛠️ Tech Stack
 
-🚧 **Under Active Development**
+* **Frontend:** React 18, Vite, Tailwind CSS, Lucide Icons
+* **Backend:** Java 17, Spring Boot, Spring Security, JWT Authentication
+* **Database:** PostgreSQL
+* **DevOps & Infrastructure:** Docker, Docker Compose, Environment Variable Configuration
 
-The core backend evaluation architecture is up and running. The **Statutory Compliance Engine** successfully calculates monthly tax/PF liabilities, compares them to actual configured employee profiles, and generates AI-driven risk mitigation alerts.
+---
 
-### 🤖 Verified Endpoint: AI Compliance & Statutory Tax Evaluation
+## ✨ Key Features
 
-- **Endpoint:** `/api/v1/payroll/evaluate-compliance` *(Update if route changes)*
-- **Method:** `POST`
-- **Description:** Evaluates an employee's deduction profile against calculated statutory liabilities (`monthlyStatutoryPFEstimate` + `monthlyStatutoryTaxEstimate`).
+1. **AI Statutory Compliance Engine**
+   * Real-time automated audit evaluations for tax and Provident Fund (PF) rules.
+   * Dynamic risk scoring and statutory liability breakdowns.
+   * Quick-fix auto-adjustment tools for non-compliant employee salary structures.
 
-#### Sample Response (Non-Compliant Risk Flagged)
-```json
-{
-  "success": true,
-  "message": "AI Compliance and Statutory Tax evaluation completed",
-  "data": {
-    "employeeId": 4,
-    "employeeName": "Aryan Thakur",
-    "projectedAnnualGross": 1200000.00,
-    "monthlyStatutoryPFEstimate": 10200.00,
-    "monthlyStatutoryTaxEstimate": 20000.00,
-    "totalExpectedDeductions": 30200.00,
-    "actualConfiguredDeductions": 7500.00,
-    "complianceStatus": "NON_COMPLIANT",
-    "aiRiskAssessment": "Warning: The employee's monthly deduction profile falls short of expected statutory liabilities (PF + estimated income tax). Check for tax withholding variances."
-  }
-}
+2. **Command Center Dashboard**
+   * Workforce metrics, compliance coverage progress meters, and operational health feeds.
+   * PostgreSQL database connection indicators and audit logging.
+
+3. **Company & Employee Management**
+   * Multi-company management with dynamic registration modal flows.
+   * Employee roster integration and automated directory loading.
+
+4. **Production-Ready Security & Config**
+   * Bearer JWT token authentication headers on protected endpoints.
+   * Strict `.env` environment variable isolation with zero hardcoded credentials.
+
+---
+
+## 🚀 Quick Start (Docker Compose)
+
+Run the entire stack (PostgreSQL, Spring Boot Backend, React Frontend) in one command:
+
+```bash
+docker-compose up --build -d
