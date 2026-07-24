@@ -6,7 +6,7 @@ A modern, full-stack payroll application built to streamline salary processing, 
 
 ## 🌐 Live Deployments
 
-* **Frontend App:** [https://ai-payroll.vercel.app](https://ai-payroll.vercel.app) *(or your Vercel URL)*
+* **Frontend App:** [https://ai-payroll.vercel.app](https://ai-payroll-compliance-platform.vercel.app/)
 * **Backend API:** [https://ai-payroll-backend.onrender.com](https://ai-payroll-backend.onrender.com)
 * **Database:** PostgreSQL (Cloud hosted on Neon.tech)
 
