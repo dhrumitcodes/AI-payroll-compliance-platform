@@ -1,42 +1,59 @@
-# ⚡ QuantumPay - Enterprise Payroll & AI Compliance Engine
+# 💼 AI-Powered Payroll Platform
 
-**QuantumPay** is an enterprise-grade payroll management system built to automate tax compliance, statutory deductions, employee directory management, and workforce analytics. Powered by a Spring Boot REST API, PostgreSQL, and a modern React frontend.
-
----
-
-## 🛠️ Tech Stack
-
-* **Frontend:** React 18, Vite, Tailwind CSS, Lucide Icons
-* **Backend:** Java 17, Spring Boot, Spring Security, JWT Authentication
-* **Database:** PostgreSQL
-* **DevOps & Infrastructure:** Docker, Docker Compose, Environment Variable Configuration
+A modern, full-stack payroll application built to streamline salary processing, user authentication, and employee management.
 
 ---
 
-## ✨ Key Features
+## 🌐 Live Deployments
 
-1. **AI Statutory Compliance Engine**
-   * Real-time automated audit evaluations for tax and Provident Fund (PF) rules.
-   * Dynamic risk scoring and statutory liability breakdowns.
-   * Quick-fix auto-adjustment tools for non-compliant employee salary structures.
-
-2. **Command Center Dashboard**
-   * Workforce metrics, compliance coverage progress meters, and operational health feeds.
-   * PostgreSQL database connection indicators and audit logging.
-
-3. **Company & Employee Management**
-   * Multi-company management with dynamic registration modal flows.
-   * Employee roster integration and automated directory loading.
-
-4. **Production-Ready Security & Config**
-   * Bearer JWT token authentication headers on protected endpoints.
-   * Strict `.env` environment variable isolation with zero hardcoded credentials.
+* **Frontend App:** [https://ai-payroll.vercel.app](https://ai-payroll.vercel.app) *(or your Vercel URL)*
+* **Backend API:** [https://ai-payroll-backend.onrender.com](https://ai-payroll-backend.onrender.com)
+* **Database:** PostgreSQL (Cloud hosted on Neon.tech)
 
 ---
 
-## 🚀 Quick Start (Docker Compose)
+## 🚀 Tech Stack
 
-Run the entire stack (PostgreSQL, Spring Boot Backend, React Frontend) in one command:
+### **Frontend**
+* **Framework:** React.js (Vite)
+* **Deployment:** Vercel
 
+### **Backend**
+* **Framework:** Java / Spring Boot
+* **Security:** Spring Security & JWT Authentication
+* **Data Access:** Spring Data JPA / Hibernate
+* **Deployment:** Render
+
+### **Database**
+* **Engine:** PostgreSQL (Serverless Cloud DB on Neon)
+
+---
+
+## ✨ Features
+
+* **Authentication & Authorization:** Secure user login and role-based access control (`/api/auth/login`).
+* **Payroll Processing:** Automated salary calculations, structure management, and tracking.
+* **Persistent Storage:** Cloud PostgreSQL integration ensuring zero data loss.
+* **CORS & Web Security:** Configured cross-origin communication between Vercel and Render.
+* **Health Endpoint:** Public `/api/auth/health` route for system status monitoring.
+
+---
+
+## 🛠️ Production Configuration
+
+The backend relies on the following environment variables configured on Render:
+
+| Variable | Description |
+| :--- | :--- |
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://<neon-host>/neondb?sslmode=require` |
+| `SPRING_DATASOURCE_USERNAME` | Neon DB Username |
+| `SPRING_DATASOURCE_PASSWORD` | Neon DB Password |
+
+---
+
+## ⚡ Local Setup
+
+### **1. Clone Repositories**
 ```bash
-docker-compose up --build -d
+git clone [https://github.com/your-username/ai-payroll-backend.git](https://github.com/your-username/ai-payroll-backend.git)
+git clone [https://github.com/your-username/ai-payroll-frontend.git](https://github.com/your-username/ai-payroll-frontend.git)
