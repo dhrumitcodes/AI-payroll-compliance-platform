@@ -55,5 +55,9 @@ The backend relies on the following environment variables configured on Render:
 
 ### **1. Clone Repositories**
 ```bash
-git clone [https://github.com/your-username/ai-payroll-backend.git](https://github.com/your-username/ai-payroll-backend.git)
-git clone [https://github.com/your-username/ai-payroll-frontend.git](https://github.com/your-username/ai-payroll-frontend.git)
+git clone [https://github.com/dhrumitcodes/ai-payroll-backend.git](https://github.com/dhrumitcodes/ai-payroll-backend.git)
+git clone [https://github.com/dhrumitcodes/ai-payroll-frontend.git](https://github.com/dhrumitcodes/ai-payroll-frontend.git)
+
+
+
+
