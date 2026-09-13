@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import WaveBackground from "../../components/ui/WaveBackground";
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://ai-payroll-backend.onrender.com/api";
 
 const features = [
     {
