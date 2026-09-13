@@ -18,7 +18,7 @@ function authHeaders() {
 
 function PayrollPage() {
     const userRole = localStorage.getItem("userRole");
-    const canManagePayroll = userRole === "PAYROLL_ADMIN";
+    const canManagePayroll = userRole === "ROLE_COMPANY_ADMIN" || userRole === "ROLE_SUPER_ADMIN";
 
     const [employees, setEmployees] = useState([]);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState("");

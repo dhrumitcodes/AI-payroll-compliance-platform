@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AlertCircle, CheckCircle2, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, X, Trash2 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -10,7 +10,7 @@ function authHeaders() {
 
 function EmployeesPage() {
     const userRole = localStorage.getItem("userRole");
-    const canManageEmployees = userRole === "HR" || userRole === "PAYROLL_ADMIN";
+    const canManageEmployees = userRole === "ROLE_COMPANY_ADMIN" || userRole === "ROLE_SUPER_ADMIN";
 
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -108,6 +108,23 @@ function EmployeesPage() {
         }
     };
 
+    const handleDelete = (id, fullName) => {
+        if (!window.confirm(`Delete "${fullName}"? This cannot be undone.`)) return;
+
+        fetch(`${API_BASE}/api/employees/${id}`, {
+            method: "DELETE",
+            headers: { ...authHeaders() },
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to delete employee");
+                fetchEmployees();
+            })
+            .catch((err) => {
+                console.error("Delete Error:", err);
+                setLoadError(err.message);
+            });
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -163,12 +180,13 @@ function EmployeesPage() {
                                 <th className="px-2">Aadhaar</th>
                                 <th className="px-2">Position</th>
                                 <th className="px-2">Hire date</th>
+                                {canManageEmployees && <th className="px-2 text-right">Actions</th>}
                             </tr>
                             </thead>
                             <tbody className="divide-y divide-border dark:divide-border-dark text-sm">
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-10 text-muted dark:text-muted-dark">
+                                    <td colSpan={canManageEmployees ? 8 : 7} className="text-center py-10 text-muted dark:text-muted-dark">
                                         No employee records found. Click "+ Add employee" to create one.
                                     </td>
                                 </tr>
@@ -188,6 +206,17 @@ function EmployeesPage() {
                                                 </span>
                                         </td>
                                         <td className="px-2 text-xs text-muted dark:text-muted-dark">{emp.hireDate}</td>
+                                        {canManageEmployees && (
+                                            <td className="px-2 text-right">
+                                                <button
+                                                    onClick={() => handleDelete(emp.id, `${emp.firstName} ${emp.lastName}`)}
+                                                    className="text-muted dark:text-muted-dark hover:text-danger transition-colors"
+                                                    title="Delete employee"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}

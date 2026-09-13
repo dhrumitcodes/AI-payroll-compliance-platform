@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 function CompanyPage() {
     const userRole = localStorage.getItem("userRole");
-    const canManageCompanies = userRole === "PAYROLL_ADMIN";
+    const canManageCompanies = userRole === "ROLE_SUPER_ADMIN";
 
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,8 +42,6 @@ function CompanyPage() {
             })
             .catch((err) => {
                 console.error("Fetch Error:", err);
-                // No fake fallback data — a real failure should look like a
-                // failure, not a hardcoded company that quietly masks it.
                 setLoadError(err.message || "Could not reach the backend.");
                 setLoading(false);
             });
@@ -80,13 +78,10 @@ function CompanyPage() {
                 setSubmitting(false);
                 setIsModalOpen(false);
                 setFormData({ name: "", registrationNumber: "", email: "" });
-                fetchCompanies(); // re-pull the real list — never trust an echoed local object as truth
+                fetchCompanies();
             })
             .catch((err) => {
                 console.error("Create Company Error:", err);
-                // A real rejection (duplicate name/registration number, bad
-                // email, etc.) now actually shows up — it no longer gets
-                // added to the list anyway.
                 setError(err.message || "Something went wrong. Please try again.");
                 setSubmitting(false);
             });
