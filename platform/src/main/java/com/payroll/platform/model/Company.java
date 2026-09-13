@@ -18,6 +18,9 @@ public class Company {
     @Column(name = "registration_number", unique = true)
     private String registrationNumber;
 
+    @Column
+    private String email;
+
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Employee> employees = new ArrayList<>();
 
@@ -48,6 +51,14 @@ public class Company {
 
     public void setRegistrationNumber(String registrationNumber) {
         this.registrationNumber = registrationNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public List<Employee> getEmployees() {

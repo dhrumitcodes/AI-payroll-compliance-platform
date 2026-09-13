@@ -26,6 +26,12 @@ public class Employee {
     @Column(nullable = false)
     private String position;
 
+    @Column(name = "pan_number", unique = true)
+    private String panNumber;
+
+    @Column(name = "aadhaar_number", unique = true)
+    private String aadhaarNumber;
+
     @Column(name = "hire_date", nullable = false)
     private LocalDate hireDate;
 
@@ -81,6 +87,12 @@ public class Employee {
 
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
+
+    public String getPanNumber() { return panNumber; }
+    public void setPanNumber(String panNumber) { this.panNumber = panNumber; }
+
+    public String getAadhaarNumber() { return aadhaarNumber; }
+    public void setAadhaarNumber(String aadhaarNumber) { this.aadhaarNumber = aadhaarNumber; }
 
     public LocalDate getHireDate() { return hireDate; }
     public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }

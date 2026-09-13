@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { AlertCircle, CheckCircle2, X } from "lucide-react";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+function authHeaders() {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 function EmployeesPage() {
+    const userRole = localStorage.getItem("userRole");
+    const canManageEmployees = userRole === "HR" || userRole === "PAYROLL_ADMIN";
+
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
@@ -13,14 +25,17 @@ function EmployeesPage() {
         lastName: "",
         email: "",
         position: "",
+        panNumber: "",
+        aadhaarNumber: "",
         hireDate: new Date().toISOString().split("T")[0],
         companyId: 1,
-        departmentId: 1
+        departmentId: 1,
     });
 
     const fetchEmployees = () => {
         setLoading(true);
-        fetch("http://localhost:8080/api/employees/company/1")
+        setLoadError(null);
+        fetch(`${API_BASE}/api/employees/company/1`, { headers: { ...authHeaders() } })
             .then((res) => {
                 if (!res.ok) throw new Error("Failed to load employee directory");
                 return res.json();
@@ -34,6 +49,7 @@ function EmployeesPage() {
             })
             .catch((err) => {
                 console.error("Fetch Error:", err);
+                setLoadError(err.message);
                 setLoading(false);
             });
     };
@@ -44,10 +60,7 @@ function EmployeesPage() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -57,14 +70,14 @@ function EmployeesPage() {
         setSuccessMsg("");
 
         try {
-            const response = await fetch("http://localhost:8080/api/employees", {
+            const response = await fetch(`${API_BASE}/api/employees`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", ...authHeaders() },
                 body: JSON.stringify({
                     ...formData,
                     companyId: Number(formData.companyId),
-                    departmentId: Number(formData.departmentId)
-                })
+                    departmentId: Number(formData.departmentId),
+                }),
             });
 
             const data = await response.json();
@@ -73,21 +86,20 @@ function EmployeesPage() {
                 throw new Error(data.message || "Failed to register employee record.");
             }
 
-            setSuccessMsg("Employee registered successfully!");
+            setSuccessMsg("Employee registered successfully.");
             setShowModal(false);
-
             setFormData({
                 firstName: "",
                 lastName: "",
                 email: "",
                 position: "",
+                panNumber: "",
+                aadhaarNumber: "",
                 hireDate: new Date().toISOString().split("T")[0],
                 companyId: 1,
-                departmentId: 1
+                departmentId: 1,
             });
-
             fetchEmployees();
-
         } catch (err) {
             console.error("Submission Error:", err);
             setError(err.message);
@@ -100,61 +112,82 @@ function EmployeesPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-                        Employee Directory
+                    <h1 className="text-2xl font-semibold text-ink dark:text-ink-dark">
+                        Employee directory
                     </h1>
-                    <p className="text-slate-500 text-sm mt-1">Manage workplace personnel and onboarding profiles.</p>
+                    <p className="text-sm text-muted dark:text-muted-dark mt-1">
+                        Manage workplace personnel and onboarding profiles.
+                    </p>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm"
-                >
-                    + Add Employee
-                </button>
+                {canManageEmployees && (
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-accent hover:bg-accent-hover text-white font-medium px-4 py-2.5 rounded-control text-sm transition-colors"
+                    >
+                        + Add employee
+                    </button>
+                )}
             </div>
 
-            {successMsg && (
-                <div className="mb-4 p-4 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium">
-                    ✅ {successMsg}
+            {!canManageEmployees && (
+                <div className="mb-4 p-3 bg-warning-soft text-warning text-sm rounded-control">
+                    Your role ({userRole || "unknown"}) has read-only access to the employee directory.
                 </div>
             )}
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+            {successMsg && (
+                <div className="mb-4 p-3 bg-success-soft text-success rounded-control text-sm font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    {successMsg}
+                </div>
+            )}
+
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
                 {loading ? (
-                    <div className="text-center py-8 text-slate-500">Loading directory...</div>
+                    <div className="text-center py-10 text-muted dark:text-muted-dark text-sm">
+                        Loading directory…
+                    </div>
+                ) : loadError ? (
+                    <div className="text-center py-10 text-danger text-sm">
+                        {loadError} — check that the backend is running.
+                    </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                            <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                                <th className="py-3 px-4">ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Position</th>
-                                <th>Hire Date</th>
+                            <tr className="border-b border-border dark:border-border-dark text-muted dark:text-muted-dark text-xs font-semibold uppercase tracking-wide">
+                                <th className="py-3 px-2">ID</th>
+                                <th className="px-2">Name</th>
+                                <th className="px-2">Email</th>
+                                <th className="px-2">PAN</th>
+                                <th className="px-2">Aadhaar</th>
+                                <th className="px-2">Position</th>
+                                <th className="px-2">Hire date</th>
                             </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-sm text-slate-600 dark:text-slate-300">
+                            <tbody className="divide-y divide-border dark:divide-border-dark text-sm">
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-8 text-slate-400">
-                                        No employee records found. Click '+ Add Employee' to create one!
+                                    <td colSpan="7" className="text-center py-10 text-muted dark:text-muted-dark">
+                                        No employee records found. Click "+ Add employee" to create one.
                                     </td>
                                 </tr>
                             ) : (
                                 employees.map((emp) => (
-                                    <tr key={emp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20">
-                                        <td className="py-4 px-4 font-mono text-xs text-slate-400">#{emp.id}</td>
-                                        <td className="font-semibold text-slate-900 dark:text-slate-100">
+                                    <tr key={emp.id} className="hover:bg-canvas dark:hover:bg-canvas-dark transition-colors">
+                                        <td className="py-4 px-2 font-mono text-xs text-muted dark:text-muted-dark">#{emp.id}</td>
+                                        <td className="px-2 font-medium text-ink dark:text-ink-dark">
                                             {emp.firstName} {emp.lastName}
                                         </td>
-                                        <td>{emp.email}</td>
-                                        <td>
-                                                <span className="bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2.5 py-1 rounded-md text-xs font-medium">
+                                        <td className="px-2 text-muted dark:text-muted-dark">{emp.email}</td>
+                                        <td className="px-2 font-mono text-xs text-muted dark:text-muted-dark">{emp.panNumber || "—"}</td>
+                                        <td className="px-2 font-mono text-xs text-muted dark:text-muted-dark">{emp.aadhaarNumber || "—"}</td>
+                                        <td className="px-2">
+                                                <span className="bg-accent-soft dark:bg-accent-soft-dark text-accent px-2.5 py-1 rounded-control text-xs font-medium">
                                                     {emp.position}
                                                 </span>
                                         </td>
-                                        <td className="text-slate-500">{emp.hireDate}</td>
+                                        <td className="px-2 text-xs text-muted dark:text-muted-dark">{emp.hireDate}</td>
                                     </tr>
                                 ))
                             )}
@@ -165,99 +198,120 @@ function EmployeesPage() {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-                            New Employee Registration
-                        </h2>
-                        <p className="text-slate-500 text-sm mb-6">Enter candidate details to publish record into payroll database.</p>
+                <div className="fixed inset-0 bg-ink/50 flex justify-center items-center z-50 p-4">
+                    <div className="bg-surface dark:bg-surface-dark rounded-card w-full max-w-lg p-6 border border-border dark:border-border-dark">
+                        <div className="flex justify-between items-start mb-1">
+                            <h2 className="text-lg font-semibold text-ink dark:text-ink-dark">
+                                New employee registration
+                            </h2>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="text-muted dark:text-muted-dark hover:text-ink dark:hover:text-ink-dark"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-muted dark:text-muted-dark mb-5">
+                            PAN and Aadhaar are checked against existing records — duplicates on either are rejected.
+                        </p>
 
                         {error && (
-                            <div className="mb-4 p-3 bg-rose-50 text-rose-600 rounded-lg text-sm">
-                                ⚠️ {error}
+                            <div className="mb-4 p-3 bg-danger-soft text-danger rounded-control text-sm flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                {error}
                             </div>
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-1">First Name</label>
+                                    <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">First name</label>
                                     <input
-                                        type="text"
-                                        name="firstName"
-                                        required
-                                        value={formData.firstName}
-                                        onChange={handleChange}
+                                        type="text" name="firstName" required
+                                        value={formData.firstName} onChange={handleChange}
                                         placeholder="e.g. John"
-                                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-1">Last Name</label>
+                                    <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">Last name</label>
                                     <input
-                                        type="text"
-                                        name="lastName"
-                                        required
-                                        value={formData.lastName}
-                                        onChange={handleChange}
+                                        type="text" name="lastName" required
+                                        value={formData.lastName} onChange={handleChange}
                                         placeholder="e.g. Doe"
-                                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-1">Email Address</label>
+                                <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">Email address</label>
                                 <input
-                                    type="email"
-                                    name="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={handleChange}
+                                    type="email" name="email" required
+                                    value={formData.email} onChange={handleChange}
                                     placeholder="john.doe@techcorp.com"
-                                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                                 />
                             </div>
 
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">PAN number</label>
+                                    <input
+                                        type="text" name="panNumber" required
+                                        value={formData.panNumber}
+                                        onChange={(e) => setFormData((p) => ({ ...p, panNumber: e.target.value.toUpperCase() }))}
+                                        placeholder="ABCDE1234F"
+                                        maxLength={10}
+                                        className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">Aadhaar number</label>
+                                    <input
+                                        type="text" name="aadhaarNumber" required
+                                        value={formData.aadhaarNumber}
+                                        onChange={(e) => setFormData((p) => ({ ...p, aadhaarNumber: e.target.value.replace(/\D/g, "") }))}
+                                        placeholder="123456789012"
+                                        maxLength={12}
+                                        className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent font-mono"
+                                    />
+                                </div>
+                            </div>
+
                             <div>
-                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-1">Position / Title</label>
+                                <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">Position / title</label>
                                 <input
-                                    type="text"
-                                    name="position"
-                                    required
-                                    value={formData.position}
-                                    onChange={handleChange}
+                                    type="text" name="position" required
+                                    value={formData.position} onChange={handleChange}
                                     placeholder="e.g. Senior Software Engineer"
-                                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase mb-1">Hire Date</label>
+                                <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">Hire date</label>
                                 <input
-                                    type="date"
-                                    name="hireDate"
-                                    required
-                                    value={formData.hireDate}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="date" name="hireDate" required
+                                    value={formData.hireDate} onChange={handleChange}
+                                    className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                                 />
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-end gap-3 pt-3 border-t border-border dark:border-border-dark">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium text-sm transition-colors"
+                                    className="px-4 py-2.5 text-ink dark:text-ink-dark hover:bg-canvas dark:hover:bg-canvas-dark rounded-control font-medium text-sm transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors disabled:bg-blue-400"
+                                    className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-control font-medium text-sm transition-colors disabled:opacity-50"
                                 >
-                                    {submitting ? "Saving..." : "Save Employee"}
+                                    {submitting ? "Saving…" : "Save employee"}
                                 </button>
                             </div>
                         </form>

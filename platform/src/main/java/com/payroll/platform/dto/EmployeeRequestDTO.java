@@ -3,6 +3,7 @@ package com.payroll.platform.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 
 public class EmployeeRequestDTO {
@@ -19,6 +20,14 @@ public class EmployeeRequestDTO {
 
     @NotBlank(message = "Position is mandatory")
     private String position;
+
+    @NotBlank(message = "PAN number is mandatory")
+    @Pattern(regexp = "^[A-Z]{5}[0-9]{4}[A-Z]{1}$", message = "PAN must match the format AAAAA9999A")
+    private String panNumber;
+
+    @NotBlank(message = "Aadhaar number is mandatory")
+    @Pattern(regexp = "^[0-9]{12}$", message = "Aadhaar must be exactly 12 digits")
+    private String aadhaarNumber;
 
     @NotNull(message = "Hire date is mandatory")
     private LocalDate hireDate;
@@ -40,6 +49,12 @@ public class EmployeeRequestDTO {
 
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
+
+    public String getPanNumber() { return panNumber; }
+    public void setPanNumber(String panNumber) { this.panNumber = panNumber; }
+
+    public String getAadhaarNumber() { return aadhaarNumber; }
+    public void setAadhaarNumber(String aadhaarNumber) { this.aadhaarNumber = aadhaarNumber; }
 
     public LocalDate getHireDate() { return hireDate; }
     public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }

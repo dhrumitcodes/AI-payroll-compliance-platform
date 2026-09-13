@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/companies")
-@CrossOrigin(origins = "http://laocalhost:5173")
+@CrossOrigin(origins = "http://localhost:5173")
 @Tag(
         name = "Company Management",
         description = "CRUD APIs for Company Management"
@@ -37,8 +37,8 @@ public class CompanyController {
         ApiResponse<CompanyResponseDTO> response =
                 new ApiResponse<>(
                         true,
-        "company created successfully",
-        company);
+                        "company created successfully",
+                        company);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

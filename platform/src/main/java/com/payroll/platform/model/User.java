@@ -16,6 +16,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "company_id")
+    private Long companyId;
+
     private String role;
 
     public User() {}
@@ -28,6 +31,14 @@ public class User {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
+    }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

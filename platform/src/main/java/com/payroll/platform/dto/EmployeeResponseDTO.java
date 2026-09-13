@@ -9,6 +9,8 @@ public class EmployeeResponseDTO {
     private String lastName;
     private String email;
     private String position;
+    private String panNumber;
+    private String aadhaarNumber; // masked — only last 4 digits are ever returned
     private LocalDate hireDate;
     private Long companyId;
     private String companyName;
@@ -31,6 +33,12 @@ public class EmployeeResponseDTO {
 
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
+
+    public String getPanNumber() { return panNumber; }
+    public void setPanNumber(String panNumber) { this.panNumber = panNumber; }
+
+    public String getAadhaarNumber() { return aadhaarNumber; }
+    public void setAadhaarNumber(String aadhaarNumber) { this.aadhaarNumber = aadhaarNumber; }
 
     public LocalDate getHireDate() { return hireDate; }
     public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }

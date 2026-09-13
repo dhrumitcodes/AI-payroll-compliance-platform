@@ -1,6 +1,8 @@
 package com.payroll.platform.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CompanyRequestDTO {
@@ -10,15 +12,28 @@ public class CompanyRequestDTO {
     private String name;
 
     @NotBlank(message = "Registration Number cannot be empty")
-    @Size(min = 3, max = 30, message = "Registration Number must be between 3 and 30 characters")
+    @Pattern(regexp = "^\\d{2}[A-Z]{5}\\d{4}[A-Z]{1}[A-Z\\d]{1}Z[A-Z\\d]{1}$", message = "Must be a valid 15-character GSTIN (e.g. 27AAPFU0939F1ZV)")
     private String registrationNumber;
+
+    @NotBlank(message = "Corporate email cannot be empty")
+    @Email(message = "Must be a valid email address")
+    private String email;
 
     public CompanyRequestDTO() {
     }
 
-    public CompanyRequestDTO(String name, String registrationNumber) {
+    public CompanyRequestDTO(String name, String registrationNumber, String email) {
         this.name = name;
         this.registrationNumber = registrationNumber;
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getName() {

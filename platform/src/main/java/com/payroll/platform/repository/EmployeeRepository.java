@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     boolean existsByCompanyIdAndEmailIgnoreCase(Long companyId, String email);
+    boolean existsByPanNumber(String panNumber);
+    boolean existsByAadhaarNumber(String aadhaarNumber);
     Page<Employee> findByCompanyId(Long companyId, Pageable pageable);
     Page<Employee> findByDepartmentId(Long departmentId, Pageable pageable);
     Page<Employee> findByCompanyIdAndLastNameContainingIgnoreCase(Long companyId, String lastName, Pageable pageable);

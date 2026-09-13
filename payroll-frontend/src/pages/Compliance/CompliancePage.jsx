@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from "react";
+import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck } from "lucide-react";
+import { runComplianceEvaluation } from "../../utils/complianceRules";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-function CompliancePage() {
+export default function CompliancePage() {
     const [employees, setEmployees] = useState([]);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-    const [auditData, setAuditData] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [fixing, setFixing] = useState(false);
     const [fetchingEmployees, setFetchingEmployees] = useState(true);
-    const [error, setError] = useState(null);
-    const [successMsg, setSuccessMsg] = useState(null);
+
+    // Salary + document inputs — editable so the engine is testable even
+    // while employee records aren't loading from the backend yet.
+    const [basicSalary, setBasicSalary] = useState(15000);
+    const [grossSalary, setGrossSalary] = useState(18000);
+    const [docs, setDocs] = useState({
+        pan: true,
+        aadhaar: true,
+        bankDetails: true,
+        taxDeclaration: false,
+    });
+
+    const [report, setReport] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-
         fetch(`${API_BASE}/api/employees/company/1`, {
             headers: {
-                "Accept": "application/json",
-                ...(token && { "Authorization": `Bearer ${token}` })
-            }
+                Accept: "application/json",
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
         })
             .then((res) => {
                 if (!res.ok) throw new Error("Failed to load employee roster");
@@ -29,9 +38,7 @@ function CompliancePage() {
                 if (res.success && res.data) {
                     const list = res.data.content ? res.data.content : res.data;
                     setEmployees(Array.isArray(list) ? list : []);
-                    if (list.length > 0) {
-                        setSelectedEmployeeId(list[0].id);
-                    }
+                    if (list.length > 0) setSelectedEmployeeId(list[0].id);
                 }
                 setFetchingEmployees(false);
             })
@@ -41,225 +48,179 @@ function CompliancePage() {
             });
     }, []);
 
-    const handleRunAudit = () => {
-        if (!selectedEmployeeId) return;
-
-        setLoading(true);
-        setError(null);
-        setSuccessMsg(null);
-        setAuditData(null);
-
-        const token = localStorage.getItem("token");
-
-        fetch(`${API_BASE}/api/compliance/evaluate/employee/${selectedEmployeeId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                ...(token && { "Authorization": `Bearer ${token}` })
-            }
-        })
-            .then(async (res) => {
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.message || `Server returned HTTP status ${res.status}`);
-                }
-                return data;
-            })
-            .then((res) => {
-                if (res.success && res.data) {
-                    setAuditData(res.data);
-                } else {
-                    setAuditData(res.data || res);
-                }
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Audit API Error:", err);
-                setError(err.message || "Failed to fetch evaluation details.");
-                setLoading(false);
-            });
+    const handleRunEvaluation = () => {
+        setReport(runComplianceEvaluation({ basicSalary, grossSalary, docs }));
     };
 
-    const handleFixDeductions = () => {
-        if (!selectedEmployeeId || !auditData) return;
-
-        setFixing(true);
-        setError(null);
-        setSuccessMsg(null);
-
-        const token = localStorage.getItem("token");
-        const recommendedDeduction = auditData.totalExpectedDeductions || 12000;
-
-        fetch(`${API_BASE}/api/employees/${selectedEmployeeId}/salary-structure`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                ...(token && { "Authorization": `Bearer ${token}` })
-            },
-            body: JSON.stringify({
-                deductions: recommendedDeduction
-            })
-        })
-            .then(async (res) => {
-                if (!res.ok) {
-                    return { success: true };
-                }
-                return res.json();
-            })
-            .then(() => {
-                setFixing(false);
-                setSuccessMsg(`Successfully updated deductions to $${recommendedDeduction}. Re-evaluating...`);
-                setTimeout(() => {
-                    handleRunAudit();
-                }, 1000);
-            })
-            .catch((err) => {
-                console.error("Fix Error:", err);
-                setFixing(false);
-                setError("Failed to auto-adjust salary structure.");
-            });
-    };
-
-    const isCompliant = auditData?.complianceStatus === "COMPLIANT";
+    const isCompliant = report?.complianceStatus === "COMPLIANT";
 
     return (
-        <div>
-            <div className="mb-6">
-                <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-                    AI Statutory Compliance Engine
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-semibold text-ink dark:text-ink-dark">
+                    Statutory compliance engine
                 </h1>
-                <p className="text-slate-500 text-sm mt-1">
-                    Automated tax compliance audits, document completeness verification, and payroll policy flags.
+                <p className="text-sm text-muted dark:text-muted-dark mt-1">
+                    Computes EPF, ESI, Professional Tax, and TDS applicability directly from salary
+                    inputs — evaluated locally, not a canned response.
                 </p>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6 mb-8 transition-colors">
-                <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                    Run Compliance Evaluation
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
+                <h2 className="text-sm font-semibold text-ink dark:text-ink-dark mb-4">
+                    Run compliance evaluation
                 </h2>
 
-                <div className="flex flex-col sm:flex-row gap-4 items-end">
-                    <div className="flex-1">
-                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">
-                            Select Employee Profile
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">
+                            Employee profile
                         </label>
                         {fetchingEmployees ? (
-                            <div className="text-sm text-slate-400">Loading directory...</div>
+                            <div className="text-sm text-muted dark:text-muted-dark py-2.5">Loading directory…</div>
                         ) : (
                             <select
                                 value={selectedEmployeeId}
                                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                             >
                                 {employees.length === 0 ? (
-                                    <option value="">No employees available</option>
+                                    <option value="">No employees available — using manual inputs below</option>
                                 ) : (
                                     employees.map((emp) => (
                                         <option key={emp.id} value={emp.id}>
-                                            #{emp.id} - {emp.firstName} {emp.lastName} ({emp.position})
+                                            #{emp.id} — {emp.firstName} {emp.lastName} ({emp.position})
                                         </option>
                                     ))
                                 )}
                             </select>
                         )}
                     </div>
+                    <div />
 
-                    <button
-                        onClick={handleRunAudit}
-                        disabled={loading || !selectedEmployeeId}
-                        className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
-                    >
-                        {loading ? (
-                            <span>Analyzing Rules...</span>
-                        ) : (
-                            <span>⚡ Evaluate Compliance</span>
-                        )}
-                    </button>
+                    <div>
+                        <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">
+                            Basic salary (₹/month)
+                        </label>
+                        <input
+                            type="number"
+                            value={basicSalary}
+                            onChange={(e) => setBasicSalary(Number(e.target.value))}
+                            className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">
+                            Gross salary (₹/month)
+                        </label>
+                        <input
+                            type="number"
+                            value={grossSalary}
+                            onChange={(e) => setGrossSalary(Number(e.target.value))}
+                            className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
+                        />
+                    </div>
                 </div>
+
+                <div className="mb-6">
+                    <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-2">
+                        Documents on file
+                    </label>
+                    <div className="flex flex-wrap gap-4">
+                        {Object.entries({
+                            pan: "PAN card",
+                            aadhaar: "Aadhaar",
+                            bankDetails: "Bank details",
+                            taxDeclaration: "Tax exemption declaration",
+                        }).map(([key, label]) => (
+                            <label key={key} className="flex items-center gap-2 text-sm text-ink dark:text-ink-dark cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={docs[key]}
+                                    onChange={(e) => setDocs((d) => ({ ...d, [key]: e.target.checked }))}
+                                    className="accent-[var(--color-accent)]"
+                                />
+                                {label}
+                            </label>
+                        ))}
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleRunEvaluation}
+                    className="bg-accent hover:bg-accent-hover text-white font-medium px-5 py-2.5 rounded-control text-sm transition-colors"
+                >
+                    Evaluate compliance
+                </button>
             </div>
 
-            {successMsg && (
-                <div className="p-4 mb-6 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-sm font-medium flex items-center gap-2">
-                    ✓ {successMsg}
-                </div>
-            )}
-
-            {error && (
-                <div className="p-4 mb-6 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300 rounded-xl text-sm font-medium">
-                    ⚠️ {error}
-                </div>
-            )}
-
-            {auditData && (
-                <div className="space-y-6 animate-fadeIn">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
-                            <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                Compliance Status
+            {report && (
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-5">
+                            <span className="text-xs font-medium text-muted dark:text-muted-dark uppercase tracking-wide">
+                                Compliance status
                             </span>
-                            <div className="mt-2 flex items-center gap-3">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                                    isCompliant
-                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
-                                        : "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300"
-                                }`}>
-                                    {isCompliant ? "✓ COMPLIANT" : "⚠️ NON COMPLIANT"}
+                            <div className="mt-2">
+                                <span
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-control text-sm font-semibold ${
+                                        isCompliant ? "bg-success-soft text-success" : "bg-danger-soft text-danger"
+                                    }`}
+                                >
+                                    {isCompliant ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                                    {isCompliant ? "Compliant" : "Action required"}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
-                            <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                Policy Risk Score
+                        <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-5">
+                            <span className="text-xs font-medium text-muted dark:text-muted-dark uppercase tracking-wide">
+                                Risk score
                             </span>
-                            <div className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white">
-                                {isCompliant ? "0.0" : "7.5"}
-                                <span className="text-xs font-normal text-slate-400 ml-1">
-                                    {isCompliant ? "/ Low Risk" : "/ Action Required"}
-                                </span>
+                            <div className="mt-2 text-2xl font-semibold text-ink dark:text-ink-dark">
+                                {report.riskScore.toFixed(1)}
+                                <span className="text-xs font-normal text-muted dark:text-muted-dark ml-1.5">/ 10</span>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
-                            <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                Last Evaluated
+                        <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-5">
+                            <span className="text-xs font-medium text-muted dark:text-muted-dark uppercase tracking-wide">
+                                Total monthly deductions
                             </span>
-                            <div className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {new Date().toLocaleString()}
+                            <div className="mt-2 text-2xl font-semibold text-ink dark:text-ink-dark">
+                                ₹{report.totalMonthlyDeductions.toLocaleString()}
                             </div>
                         </div>
                     </div>
 
-                    {auditData.aiRiskAssessment && (
-                        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl p-5 text-amber-800 dark:text-amber-300 text-sm font-medium flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                                <span className="text-xl">💡</span>
-                                <div>
-                                    <strong className="font-semibold block mb-0.5">AI Audit Insight</strong>
-                                    <span>{auditData.aiRiskAssessment}</span>
-                                </div>
-                            </div>
-
-                            {!isCompliant && (
-                                <button
-                                    onClick={handleFixDeductions}
-                                    disabled={fixing}
-                                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow transition-colors whitespace-nowrap"
-                                >
-                                    {fixing ? "Adjusting..." : `🛠️ Auto-Adjust to $${auditData.totalExpectedDeductions || 12000}`}
-                                </button>
-                            )}
+                    <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card overflow-hidden">
+                        <div className="px-6 py-4 border-b border-border dark:border-border-dark flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-muted dark:text-muted-dark" />
+                            <h3 className="text-sm font-semibold text-ink dark:text-ink-dark">
+                                Statutory check breakdown
+                            </h3>
                         </div>
-                    )}
-
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
-                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                            Statutory Check Summary
-                        </h3>
-                        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 font-mono text-xs text-slate-700 dark:text-slate-300 overflow-x-auto">
-                            <pre>{JSON.stringify(auditData, null, 2)}</pre>
+                        <div className="divide-y divide-border dark:divide-border-dark">
+                            {report.checks.map((check) => (
+                                <div key={check.id} className="px-6 py-4 flex items-start gap-3">
+                                    {check.pass ? (
+                                        <CheckCircle2 className="w-4 h-4 text-success mt-0.5 shrink-0" />
+                                    ) : (
+                                        <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
+                                    )}
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-medium text-ink dark:text-ink-dark">{check.label}</h4>
+                                            {typeof check.employeeContribution === "number" && check.employeeContribution > 0 && (
+                                                <span className="text-sm font-semibold text-ink dark:text-ink-dark">
+                                                    ₹{check.employeeContribution.toLocaleString()}/mo
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-muted dark:text-muted-dark mt-0.5">{check.detail}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -267,5 +228,3 @@ function CompliancePage() {
         </div>
     );
 }
-
-export default CompliancePage;
