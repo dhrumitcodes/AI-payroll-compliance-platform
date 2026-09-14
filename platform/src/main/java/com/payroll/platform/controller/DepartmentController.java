@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/departments")
-@CrossOrigin(origins = "http://localhost:5173") // Bridges right over to your Vite UI port!
 public class DepartmentController {
 
     private final DepartmentService departmentService;

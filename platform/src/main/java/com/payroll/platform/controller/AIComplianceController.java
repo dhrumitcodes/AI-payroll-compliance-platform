@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/compliance")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AIComplianceController {
 
     private final AIComplianceService complianceService;

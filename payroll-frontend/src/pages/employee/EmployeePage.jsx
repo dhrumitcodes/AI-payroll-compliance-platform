@@ -20,6 +20,9 @@ function EmployeesPage() {
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState("");
 
+    const [departments, setDepartments] = useState([]);
+    const [deptError, setDeptError] = useState(null);
+
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -29,7 +32,7 @@ function EmployeesPage() {
         aadhaarNumber: "",
         hireDate: new Date().toISOString().split("T")[0],
         companyId: 1,
-        departmentId: 1,
+        departmentId: "",
     });
 
     const fetchEmployees = () => {
@@ -54,8 +57,27 @@ function EmployeesPage() {
             });
     };
 
+    const fetchDepartments = () => {
+        fetch(`${API_BASE}/api/v1/departments/company/1?size=100`, { headers: { ...authHeaders() } })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to load departments");
+                return res.json();
+            })
+            .then((res) => {
+                if (res.success && res.data) {
+                    const list = res.data.content ? res.data.content : res.data;
+                    setDepartments(Array.isArray(list) ? list : []);
+                }
+            })
+            .catch((err) => {
+                console.error("Department fetch error:", err);
+                setDeptError(err.message);
+            });
+    };
+
     useEffect(() => {
         fetchEmployees();
+        fetchDepartments();
     }, []);
 
     const handleChange = (e) => {
@@ -97,7 +119,7 @@ function EmployeesPage() {
                 aadhaarNumber: "",
                 hireDate: new Date().toISOString().split("T")[0],
                 companyId: 1,
-                departmentId: 1,
+                departmentId: "",
             });
             fetchEmployees();
         } catch (err) {
@@ -179,6 +201,7 @@ function EmployeesPage() {
                                 <th className="px-2">PAN</th>
                                 <th className="px-2">Aadhaar</th>
                                 <th className="px-2">Position</th>
+                                <th className="px-2">Department</th>
                                 <th className="px-2">Hire date</th>
                                 {canManageEmployees && <th className="px-2 text-right">Actions</th>}
                             </tr>
@@ -186,7 +209,7 @@ function EmployeesPage() {
                             <tbody className="divide-y divide-border dark:divide-border-dark text-sm">
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={canManageEmployees ? 8 : 7} className="text-center py-10 text-muted dark:text-muted-dark">
+                                    <td colSpan={canManageEmployees ? 9 : 8} className="text-center py-10 text-muted dark:text-muted-dark">
                                         No employee records found. Click "+ Add employee" to create one.
                                     </td>
                                 </tr>
@@ -205,6 +228,7 @@ function EmployeesPage() {
                                                     {emp.position}
                                                 </span>
                                         </td>
+                                        <td className="px-2 text-xs text-muted dark:text-muted-dark">{emp.departmentName || "—"}</td>
                                         <td className="px-2 text-xs text-muted dark:text-muted-dark">{emp.hireDate}</td>
                                         {canManageEmployees && (
                                             <td className="px-2 text-right">
@@ -316,6 +340,32 @@ function EmployeesPage() {
                                     placeholder="e.g. Senior Software Engineer"
                                     className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-muted dark:text-muted-dark mb-1.5">Department</label>
+                                <select
+                                    name="departmentId"
+                                    required
+                                    value={formData.departmentId}
+                                    onChange={(e) => setFormData((p) => ({ ...p, departmentId: e.target.value }))}
+                                    className="w-full px-3.5 py-2.5 bg-canvas dark:bg-canvas-dark border border-border dark:border-border-dark rounded-control text-sm text-ink dark:text-ink-dark focus:outline-none focus:border-accent"
+                                >
+                                    <option value="" disabled>Select a department</option>
+                                    {departments.map((dept) => (
+                                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                    ))}
+                                </select>
+                                {deptError && (
+                                    <p className="text-[11px] text-danger mt-1">
+                                        Couldn't load departments: {deptError}
+                                    </p>
+                                )}
+                                {!deptError && departments.length === 0 && (
+                                    <p className="text-[11px] text-muted dark:text-muted-dark mt-1">
+                                        No departments found for this company yet — create one first.
+                                    </p>
+                                )}
                             </div>
 
                             <div>

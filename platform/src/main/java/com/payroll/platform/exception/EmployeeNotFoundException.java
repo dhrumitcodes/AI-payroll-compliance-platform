@@ -1,6 +1,6 @@
 package com.payroll.platform.exception;
 
-public class EmployeeNotFoundException extends RuntimeException {
+public class EmployeeNotFoundException extends ResourceNotFoundException {
     public EmployeeNotFoundException(String message) {
         super(message);
     }
