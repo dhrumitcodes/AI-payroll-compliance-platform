@@ -10,6 +10,7 @@ import CompanyPage from "../pages/company/CompanyPage";
 import EmployeePage from "../pages/employee/EmployeePage";
 import CompliancePage from "../pages/Compliance/CompliancePage";
 import PayrollPage from "../pages/payroll/PayrollPage";
+import DepartmentPage from "../pages/department/DepartmentPage";
 import SettingsPage from "../pages/settings-page/SettingsPage";
 
 export default function AppRouter() {
@@ -28,6 +29,7 @@ export default function AppRouter() {
                         <Route path="/employee" element={<EmployeePage />} />
                         <Route path="/compliance" element={<CompliancePage />} />
                         <Route path="/payroll" element={<PayrollPage />} />
+                        <Route path="/department" element={<DepartmentPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                     </Route>
                 </Route>

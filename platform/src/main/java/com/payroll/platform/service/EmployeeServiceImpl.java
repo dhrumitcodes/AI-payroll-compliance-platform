@@ -159,7 +159,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR')"
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR' , 'EMPLOYEE')"
     )
     @Transactional(readOnly = true)
     public Page<EmployeeResponseDTO> getEmployeesByCompany(
@@ -197,7 +197,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR')"
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR' , 'EMPLOYEE')"
     )
     @Transactional(readOnly = true)
     public Page<EmployeeResponseDTO> getEmployeesByDepartment(

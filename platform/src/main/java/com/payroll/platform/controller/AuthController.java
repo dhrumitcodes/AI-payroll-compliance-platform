@@ -3,6 +3,7 @@ package com.payroll.platform.controller;
 import com.payroll.platform.model.User;
 import com.payroll.platform.repository.UserRepository;
 import com.payroll.platform.security.JwtService;
+import com.payroll.platform.security.LoginAttemptService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,6 +29,9 @@ public class AuthController {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
@@ -58,10 +62,28 @@ public class AuthController {
 
             email = email.trim();
 
+            if (loginAttemptService.isLocked(email)) {
+
+                long secondsLeft = loginAttemptService.secondsUntilUnlock(email);
+
+                return ResponseEntity
+                        .status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Too many failed login attempts. Try again in "
+                                                + Math.max(1, secondsLeft / 60)
+                                                + " minute(s)."
+                                )
+                        );
+            }
+
             Optional<User> userOptional =
                     userRepository.findByEmail(email);
 
             if (userOptional.isEmpty()) {
+
+                loginAttemptService.recordFailure(email);
 
                 System.err.println(
                         "LOGIN FAIL: No user found for email -> "
@@ -85,6 +107,8 @@ public class AuthController {
                     user.getPassword()
             )) {
 
+                loginAttemptService.recordFailure(email);
+
                 System.err.println(
                         "LOGIN FAIL: Password mismatch for email -> "
                                 + email
@@ -99,6 +123,8 @@ public class AuthController {
                                 )
                         );
             }
+
+            loginAttemptService.recordSuccess(email);
 
             // Generate REAL JWT
             String token =

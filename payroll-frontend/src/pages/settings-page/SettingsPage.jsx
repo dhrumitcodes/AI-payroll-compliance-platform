@@ -1,438 +1,156 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-    SlidersHorizontal,
+    User,
     ShieldCheck,
-    Bell,
-    Database,
     Server,
     CheckCircle2,
-    ChevronRight,
+    XCircle,
+    Sun,
+    Moon,
+    LogOut,
+    Info,
 } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 
-const settingsSections = [
-    {
-        icon: SlidersHorizontal,
-        title: "Tenant Configuration",
-        description:
-            "Database routing and isolation policies used across tenant workspaces.",
-        iconStyle:
-            "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-        content: (
-            <div className="mt-5">
-                <div
-                    className="
-                        inline-flex
-                        items-center
-                        rounded-md
-                        border
-                        border-slate-200
-                        dark:border-slate-700
-                        bg-slate-50
-                        dark:bg-slate-900
-                        px-3
-                        py-2
-                    "
-                >
-                    <code
-                        className="
-                            text-xs
-                            font-mono
-                            text-slate-600
-                            dark:text-slate-300
-                        "
-                    >
-                        TENANT_ISOLATION_MODE
-                        <span className="mx-2 text-slate-400">=</span>
-                        DATABASE_ROW_LEVEL
-                    </code>
-                </div>
-            </div>
-        ),
-    },
-    {
-        icon: ShieldCheck,
-        title: "Security & Access",
-        description:
-            "Application security policies and authorized backend access.",
-        iconStyle:
-            "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
-        content: (
-            <div className="mt-5 space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                    <span
-                        className="
-                            flex
-                            h-5
-                            w-5
-                            items-center
-                            justify-center
-                            rounded-full
-                            bg-emerald-50
-                            dark:bg-emerald-950/50
-                        "
-                    >
-                        <CheckCircle2
-                            className="h-3.5 w-3.5 text-emerald-600"
-                        />
-                    </span>
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-                    <span className="text-slate-600 dark:text-slate-300">
-                        Spring Boot API connected
-                    </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-                    <Server className="h-3.5 w-3.5" />
-                    <span>Backend service · Port 8080</span>
-                </div>
-            </div>
-        ),
-    },
-    {
-        icon: Bell,
-        title: "Notifications",
-        description:
-            "System notifications and compliance-related alerts.",
-        iconStyle:
-            "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
-        content: (
-            <div className="mt-5">
-                <div
-                    className="
-                        flex
-                        items-center
-                        justify-between
-                        rounded-md
-                        border
-                        border-slate-200
-                        dark:border-slate-700
-                        px-4
-                        py-3
-                    "
-                >
-                    <div>
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                            Compliance alerts
-                        </p>
-                        <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
-                            Notification preferences are managed by the system.
-                        </p>
-                    </div>
-
-                    <span
-                        className="
-                            text-[10px]
-                            uppercase
-                            tracking-wider
-                            font-medium
-                            text-slate-400
-                            dark:text-slate-500
-                        "
-                    >
-                        System managed
-                    </span>
-                </div>
-            </div>
-        ),
-    },
-    {
-        icon: Database,
-        title: "Data & Infrastructure",
-        description:
-            "Application data services and persistence infrastructure.",
-        iconStyle:
-            "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",
-        content: (
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div
-                    className="
-                        rounded-md
-                        border
-                        border-slate-200
-                        dark:border-slate-700
-                        px-4
-                        py-3
-                    "
-                >
-                    <div className="flex items-center gap-2">
-                        <span
-                            className="
-                                h-1.5
-                                w-1.5
-                                rounded-full
-                                bg-emerald-500
-                            "
-                        />
-
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                            Database
-                        </span>
-                    </div>
-
-                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                        Connected
-                    </p>
-                </div>
-
-                <div
-                    className="
-                        rounded-md
-                        border
-                        border-slate-200
-                        dark:border-slate-700
-                        px-4
-                        py-3
-                    "
-                >
-                    <div className="flex items-center gap-2">
-                        <span
-                            className="
-                                h-1.5
-                                w-1.5
-                                rounded-full
-                                bg-emerald-500
-                            "
-                        />
-
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                            API Service
-                        </span>
-                    </div>
-
-                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                        Operational
-                    </p>
-                </div>
-            </div>
-        ),
-    },
-];
+const roleLabels = {
+    ROLE_SUPER_ADMIN: "Super Admin",
+    ROLE_COMPANY_ADMIN: "Company Admin",
+    ROLE_AUDITOR: "Auditor",
+    ROLE_EMPLOYEE: "Employee",
+};
 
 export default function SettingsPage() {
+    const navigate = useNavigate();
+    const { darkMode, toggleTheme } = useTheme();
+
+    const userEmail = localStorage.getItem("userEmail") || "Unknown";
+    const userRole = localStorage.getItem("userRole") || "Unknown";
+    const companyId = localStorage.getItem("companyId");
+
+    const [healthStatus, setHealthStatus] = useState("checking");
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/auth/health`)
+            .then((res) => {
+                if (!res.ok) throw new Error("Health check failed");
+                return res.text();
+            })
+            .then(() => setHealthStatus("online"))
+            .catch(() => setHealthStatus("offline"));
+    }, []);
+
+    const handleSignOut = () => {
+        localStorage.clear();
+        navigate("/login", { replace: true });
+    };
+
     return (
-        <div className="max-w-5xl mx-auto">
-
-            <div className="mb-8">
-                <div className="flex items-center gap-2 mb-2">
-                    <span
-                        className="
-                            text-[10px]
-                            uppercase
-                            tracking-[0.14em]
-                            font-medium
-                            text-accent
-                        "
-                    >
-                        Administration
-                    </span>
-                </div>
-
-                <h1
-                    className="
-                        text-2xl
-                        font-semibold
-                        tracking-[-0.02em]
-                        text-slate-900
-                        dark:text-slate-100
-                    "
-                >
-                    System Settings
-                </h1>
-
-                <p
-                    className="
-                        mt-1.5
-                        text-sm
-                        text-slate-500
-                        dark:text-slate-400
-                    "
-                >
-                    Configure and monitor global application parameters,
-                    security, and infrastructure.
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-semibold text-ink dark:text-ink-dark">Settings</h1>
+                <p className="text-sm text-muted dark:text-muted-dark mt-1">
+                    Your account, appearance, and system status.
                 </p>
             </div>
 
-            <div
-                className="
-                    overflow-hidden
-                    rounded-lg
-                    border
-                    border-slate-200
-                    dark:border-slate-800
-                    bg-white
-                    dark:bg-slate-900
-                "
-            >
-                {settingsSections.map(
-                    (
-                        {
-                            icon: Icon,
-                            title,
-                            description,
-                            iconStyle,
-                            content,
-                        },
-                        index
-                    ) => (
-                        <section
-                            key={title}
-                            className={`
-                                px-6
-                                py-6
-                                sm:px-7
-                                ${
-                                index !==
-                                settingsSections.length - 1
-                                    ? "border-b border-slate-200 dark:border-slate-800"
-                                    : ""
-                            }
-                            `}
-                        >
-                            <div className="flex items-start gap-4">
-
-                                <div
-                                    className={`
-                                        flex
-                                        h-10
-                                        w-10
-                                        shrink-0
-                                        items-center
-                                        justify-center
-                                        rounded-md
-                                        ${iconStyle}
-                                    `}
-                                >
-                                    <Icon
-                                        className="h-5 w-5"
-                                        strokeWidth={1.8}
-                                    />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <h2
-                                                className="
-                                                    text-sm
-                                                    font-semibold
-                                                    text-slate-900
-                                                    dark:text-slate-100
-                                                "
-                                            >
-                                                {title}
-                                            </h2>
-
-                                            <p
-                                                className="
-                                                    mt-1
-                                                    text-sm
-                                                    leading-5
-                                                    text-slate-500
-                                                    dark:text-slate-400
-                                                "
-                                            >
-                                                {description}
-                                            </p>
-                                        </div>
-
-                                        <ChevronRight
-                                            className="
-                                                hidden
-                                                sm:block
-                                                h-4
-                                                w-4
-                                                shrink-0
-                                                text-slate-300
-                                                dark:text-slate-600
-                                            "
-                                        />
-                                    </div>
-
-                                    {content}
-                                </div>
-                            </div>
-                        </section>
-                    )
-                )}
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <User className="w-4 h-4 text-accent" />
+                    <h3 className="text-sm font-semibold text-ink dark:text-ink-dark">Account</h3>
+                </div>
+                <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <dt className="text-xs text-muted dark:text-muted-dark mb-1">Email</dt>
+                        <dd className="text-ink dark:text-ink-dark font-medium">{userEmail}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-xs text-muted dark:text-muted-dark mb-1">Role</dt>
+                        <dd className="text-ink dark:text-ink-dark font-medium">
+                            {roleLabels[userRole] || userRole}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt className="text-xs text-muted dark:text-muted-dark mb-1">Company ID</dt>
+                        <dd className="text-ink dark:text-ink-dark font-medium">
+                            {companyId && companyId !== "0" ? `#${companyId}` : "Platform-wide (Super Admin)"}
+                        </dd>
+                    </div>
+                </dl>
             </div>
 
-            <div
-                className="
-                    mt-5
-                    flex
-                    items-center
-                    justify-between
-                    gap-4
-                    rounded-lg
-                    border
-                    border-slate-200
-                    dark:border-slate-800
-                    bg-white
-                    dark:bg-slate-900
-                    px-5
-                    py-4
-                "
-            >
-                <div className="flex items-center gap-3">
-                    <div
-                        className="
-                            flex
-                            h-8
-                            w-8
-                            items-center
-                            justify-center
-                            rounded-full
-                            bg-emerald-50
-                            dark:bg-emerald-950/40
-                        "
-                    >
-                        <CheckCircle2
-                            className="
-                                h-4
-                                w-4
-                                text-emerald-600
-                                dark:text-emerald-400
-                            "
-                        />
-                    </div>
-
-                    <div>
-                        <p
-                            className="
-                                text-sm
-                                font-medium
-                                text-slate-800
-                                dark:text-slate-200
-                            "
-                        >
-                            All systems operational
-                        </p>
-
-                        <p
-                            className="
-                                text-xs
-                                text-slate-400
-                                dark:text-slate-500
-                            "
-                        >
-                            Quillcrest services are running normally.
-                        </p>
-                    </div>
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    {darkMode ? <Moon className="w-4 h-4 text-accent" /> : <Sun className="w-4 h-4 text-accent" />}
+                    <h3 className="text-sm font-semibold text-ink dark:text-ink-dark">Appearance</h3>
                 </div>
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted dark:text-muted-dark">
+                        Currently using {darkMode ? "dark" : "light"} mode.
+                    </p>
+                    <button
+                        onClick={toggleTheme}
+                        className="px-4 py-2 rounded-control border border-border dark:border-border-dark text-sm font-medium text-ink dark:text-ink-dark hover:bg-canvas dark:hover:bg-canvas-dark transition-colors"
+                    >
+                        Switch to {darkMode ? "light" : "dark"} mode
+                    </button>
+                </div>
+            </div>
 
-                <span
-                    className="
-                        hidden
-                        sm:block
-                        text-[10px]
-                        uppercase
-                        tracking-wider
-                        text-slate-400
-                        dark:text-slate-500
-                    "
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <Server className="w-4 h-4 text-accent" />
+                    <h3 className="text-sm font-semibold text-ink dark:text-ink-dark">Backend status</h3>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                    {healthStatus === "checking" && (
+                        <span className="text-muted dark:text-muted-dark">Checking connection…</span>
+                    )}
+                    {healthStatus === "online" && (
+                        <>
+                            <CheckCircle2 className="w-4 h-4 text-success" />
+                            <span className="text-ink dark:text-ink-dark">Spring Boot API reachable and responding</span>
+                        </>
+                    )}
+                    {healthStatus === "offline" && (
+                        <>
+                            <XCircle className="w-4 h-4 text-danger" />
+                            <span className="text-ink dark:text-ink-dark">Backend unreachable — check API status</span>
+                        </>
+                    )}
+                </div>
+                <p className="text-[11px] text-muted dark:text-muted-dark mt-2">
+                    This checks a real endpoint (<code className="font-mono">GET /api/auth/health</code>) — it isn't a static indicator.
+                </p>
+            </div>
+
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <ShieldCheck className="w-4 h-4 text-accent" />
+                    <h3 className="text-sm font-semibold text-ink dark:text-ink-dark">How access control works here</h3>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-muted dark:text-muted-dark">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                    <p>
+                        Every request carries a signed JWT identifying your role and company. Multi-tenant
+                        separation is enforced in the application layer — each service checks that the company
+                        you're requesting data for matches your own account's company (or that you're a Super
+                        Admin) before returning anything. This is Spring Security method-level authorization
+                        plus explicit checks in each service, not database-level row security.
+                    </p>
+                </div>
+            </div>
+
+            <div className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-card p-6">
+                <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-control bg-danger-soft text-danger hover:opacity-90 text-sm font-medium transition-opacity"
                 >
-                    System status
-                </span>
+                    <LogOut className="w-4 h-4" />
+                    Sign out
+                </button>
             </div>
         </div>
     );

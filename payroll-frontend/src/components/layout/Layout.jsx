@@ -6,6 +6,7 @@ import {
     LayoutDashboard,
     Building2,
     Users,
+    Layers,
     CreditCard,
     Settings,
     LogOut,
@@ -42,6 +43,11 @@ const navigation = [
         name: "AI Compliance",
         icon: ShieldCheck,
         href: "/compliance",
+    },
+    {
+        name: "Departments",
+        icon: Layers,
+        href: "/department",
     },
     {
         name: "Settings",

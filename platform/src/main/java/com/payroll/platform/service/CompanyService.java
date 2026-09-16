@@ -77,7 +77,7 @@ public class CompanyService {
 
 
     @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR')"
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR','EMPLOYEE')"
     )
     @Transactional(readOnly = true)
     public List<CompanyResponseDTO> getAllCompanies() {
@@ -104,7 +104,7 @@ public class CompanyService {
     }
 
     @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR')"
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR' , 'EMPLOYEE')"
     )
     @Transactional(readOnly = true)
     public Page<CompanyResponseDTO> getCompaniesWithPagination(
@@ -156,7 +156,7 @@ public class CompanyService {
     }
 
     @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR')"
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR' , 'EMPLOYEE')"
     )
     @Transactional(readOnly = true)
     public CompanyResponseDTO getCompanyById(Long id) {
@@ -216,7 +216,7 @@ public class CompanyService {
     }
 
     @PreAuthorize(
-            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR')"
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN', 'AUDITOR' , 'EMPLOYEE')"
     )
     @Transactional(readOnly = true)
     public List<CompanyResponseDTO> searchCompanies(

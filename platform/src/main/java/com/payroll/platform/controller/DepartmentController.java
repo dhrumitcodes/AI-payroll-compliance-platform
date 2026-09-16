@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/departments")
+@RequestMapping("/api/departments")
 public class DepartmentController {
 
     private final DepartmentService departmentService;
@@ -25,7 +25,7 @@ public class DepartmentController {
     @PostMapping
     public ResponseEntity<ApiResponse<DepartmentResponseDTO>> createDepartment(@Valid @RequestBody DepartmentRequestDTO request) {
         DepartmentResponseDTO response = departmentService.createDepartment(request);
-        return new ResponseEntity<>(new ApiResponse<>(true, "Department managed successfully", response), HttpStatus.CREATED);
+        return new ResponseEntity<>(new ApiResponse<>(true, "Department created successfully", response), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
@@ -40,7 +40,7 @@ public class DepartmentController {
             @RequestParam(required = false) String search,
             @PageableDefault(size = 10, sort = "name") Pageable pageable) {
         Page<DepartmentResponseDTO> response = departmentService.getAllDepartmentsByCompany(companyId, search, pageable);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Departments array synchronized successfully", response));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Departments fetched successfully", response));
     }
 
     @PutMapping("/{id}")
@@ -48,12 +48,12 @@ public class DepartmentController {
             @PathVariable Long id,
             @Valid @RequestBody DepartmentRequestDTO request) {
         DepartmentResponseDTO response = departmentService.updateDepartment(id, request);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Department modified and pushed", response));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Department updated successfully", response));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Department purged from compliance context", null));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Department deleted successfully", null));
     }
 }
